@@ -77,6 +77,12 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
         Set<Block> selection = playerSelections.get(player);
         if (selection == null || selection.isEmpty()) {
             player.sendMessage("§cСначала выберите блоки! Используйте ПКМ с палкой.");
+            player.sendMessage("§7Подойдите к блоку и нажмите §eПКМ §7с палкой в руке.");
+            return;
+        }
+        
+        if (selection.size() < 2) {
+            player.sendMessage("§cВыбрано слишком мало блоков! Минимум 2 блока.");
             return;
         }
         
@@ -92,8 +98,14 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
         // Создаем визуализацию
         plane.spawnDisplays();
         
-        player.sendMessage("§aСамолет §e" + name + "§a создан! Блоков: " + selection.size());
-        player.sendMessage("§7Теперь добавьте сиденья, пушки и двигатели.");
+        player.sendMessage("§a✈ Самолет §e" + name + " §aуспешно создан!");
+        player.sendMessage("§7Блоков: §e" + selection.size());
+        player.sendMessage("");
+        player.sendMessage("§6Следующие шаги:");
+        player.sendMessage("§e1. /plane addseat §7- Добавить сиденье (смотрите на блок)");
+        player.sendMessage("§e2. /plane addcannon §7- Добавить пушку");
+        player.sendMessage("§e3. /plane addengine §7- Добавить двигатель");
+        player.sendMessage("§e4. /plane setcontrol <role> §7- Установить роль сиденья");
         
         // Очищаем выделение
         playerSelections.remove(player);
@@ -102,13 +114,21 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
     private void handleAddSeat(Player player) {
         Plane plane = getTargetPlane(player);
         if (plane == null) {
-            player.sendMessage("§cСначала создайте самолет или выберите блок внутри самолета.");
+            player.sendMessage("§cСначала создайте самолет или подойдите к готовому самолету.");
+            player.sendMessage("§7Используйте §e/plane list §7для просмотра ваших самолетов.");
             return;
         }
         
         Block targetBlock = getTargetBlock(player);
         if (targetBlock == null) {
-            player.sendMessage("§cПосмотрите на блок, чтобы добавить сиденье.");
+            player.sendMessage("§cПосмотрите на блок, куда хотите поставить сиденье.");
+            player.sendMessage("§7Расстояние до блока: §eдо 10 блоков");
+            return;
+        }
+        
+        // Проверяем, что блок принадлежит самолету
+        if (!plane.getBlocks().contains(targetBlock)) {
+            player.sendMessage("§cЭтот блок не принадлежит вашему самолету!");
             return;
         }
         
@@ -117,19 +137,29 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
         plane.addSeat(seat);
         seat.spawnDisplay();
         
-        player.sendMessage("§aДобавлено сиденье #" + seatId + " (§e" + seat.getRole().getDisplayName() + "§a)");
+        player.sendMessage("§a✺ Добавлено сиденье §e#" + seatId);
+        player.sendMessage("§7Роль: §f" + seat.getRole().getDisplayName());
+        player.sendMessage("§7Чтобы изменить роль, используйте: §e/plane setcontrol <pilot|gunner|engineer>");
     }
     
     private void handleAddCannon(Player player, String[] args) {
         Plane plane = getTargetPlane(player);
         if (plane == null) {
-            player.sendMessage("§cСначала создайте самолет или выберите блок внутри самолета.");
+            player.sendMessage("§cСначала создайте самолет или подойдите к готовому самолету.");
+            player.sendMessage("§7Используйте §e/plane list §7для просмотра ваших самолетов.");
             return;
         }
         
         Block targetBlock = getTargetBlock(player);
         if (targetBlock == null) {
-            player.sendMessage("§cПосмотрите на блок, чтобы добавить пушку.");
+            player.sendMessage("§cПосмотрите на блок, куда хотите установить пушку.");
+            player.sendMessage("§7Направление пушки будет таким же, как направление вашего взгляда.");
+            return;
+        }
+        
+        // Проверяем, что блок принадлежит самолету
+        if (!plane.getBlocks().contains(targetBlock)) {
+            player.sendMessage("§cЭтот блок не принадлежит вашему самолету!");
             return;
         }
         
@@ -143,6 +173,7 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
                 pitch = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
                 player.sendMessage("§cНеверный формат углов. Используйте числа.");
+                player.sendMessage("§7Пример: §e/plane addcannon 45 -10");
                 return;
             }
         }
@@ -152,19 +183,28 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
         plane.addCannon(cannon);
         cannon.spawnDisplay();
         
-        player.sendMessage("§aДобавлена пушка #" + cannonId + " (Yaw: §e" + yaw + "§a, Pitch: §e" + pitch + "§a)");
+        player.sendMessage("§a✺ Добавлена пушка §e#" + cannonId);
+        player.sendMessage("§7Направление: Yaw §f" + String.format("%.1f", yaw) + "§7, Pitch §f" + String.format("%.1f", pitch));
+        player.sendMessage("§7Чтобы изменить направление, сломайте и поставьте пушку заново.");
     }
     
     private void handleAddEngine(Player player) {
         Plane plane = getTargetPlane(player);
         if (plane == null) {
-            player.sendMessage("§cСначала создайте самолет или выберите блок внутри самолета.");
+            player.sendMessage("§cСначала создайте самолет или подойдите к готовому самолету.");
+            player.sendMessage("§7Используйте §e/plane list §7для просмотра ваших самолетов.");
             return;
         }
         
         Block targetBlock = getTargetBlock(player);
         if (targetBlock == null) {
-            player.sendMessage("§cПосмотрите на блок, чтобы добавить двигатель.");
+            player.sendMessage("§cПосмотрите на блок, куда хотите установить двигатель.");
+            return;
+        }
+        
+        // Проверяем, что блок принадлежит самолету
+        if (!plane.getBlocks().contains(targetBlock)) {
+            player.sendMessage("§cЭтот блок не принадлежит вашему самолету!");
             return;
         }
         
@@ -173,8 +213,9 @@ public class PlaneCommandHandler implements CommandExecutor, TabCompleter {
         engine.setAssignedPlayer(player); // Назначаем текущего игрока
         plane.addEngine(engine);
         
-        player.sendMessage("§aДобавлен двигатель #" + engineId);
-        player.sendMessage("§7Теперь вы можете управлять этим двигателем.");
+        player.sendMessage("§a✺ Добавлен двигатель §e#" + engineId);
+        player.sendMessage("§7Управление двигателем закреплено за вами.");
+        player.sendMessage("§7Когда вы сядете в самолет, вы сможете управлять тягой.");
     }
     
     private void handleSetControl(Player player, String[] args) {
