@@ -1,0 +1,28 @@
+name: PlaneDisplayBlock
+version: '${project.version}'
+main: tg.eventide.planeDisplayBlock.PlaneDisplayBlock
+api-version: '1.21'
+description: Плагин для создания управляемых самолетов с визуализацией через BlockDisplay
+author: Eventide
+
+commands:
+  plane:
+    description: Управление самолетами
+    usage: |
+      /plane create - Создать новый самолет из выбранных блоков
+      /plane addseat - Добавить сиденье к выбранному самолету
+      /plane addcannon - Добавить пушку к самолету
+      /plane addengine - Добавить двигатель к самолету
+      /plane setcontrol <pilot|gunner|engineer> - Установить роль для текущего сиденья
+      /plane list - Показать список ваших самолетов
+      /plane enter <id> - Войти в самолет
+      /plane exit - Покинуть самолет (нажмите Shift в самолете)
+      /plane sync - Синхронизировать визуализацию самолета
+
+permissions:
+  plane.use:
+    description: Разрешение на использование плагина
+    default: true
+  plane.admin:
+    description: Административные команды
+    default: op
