@@ -1,18 +1,31 @@
 ```
-# Compiled and build artifacts
+# Compiled Java classes
 *.class
-*.o
-*.obj
-*.out
+
+# JAR files
+*.jar
+
+# Build artifacts
 target/
+build/
+
 # Dependencies
 lib/
-# Logs and temp files
-*.log
-*.tmp
-# Editors
-.vscode/
+libs/
+
+# IDE files
 .idea/
-# Maven specific
-target/maven-status/
+.vscode/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
 ```

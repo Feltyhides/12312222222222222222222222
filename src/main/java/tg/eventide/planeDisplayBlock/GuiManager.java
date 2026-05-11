@@ -36,20 +36,8 @@ public class GuiManager implements Listener {
     public void showExitMenu(Player player, Plane plane) {
         pendingActions.put(player.getUniqueId(), PendingAction.EXIT_MENU);
         
-        player.sendMessage("§6=== Самолет: " + plane.getName() + " ===");
-        player.sendMessage("");
-        player.sendMessage("§c✖ §fНажмите §e[ЛКМ] §fс пустой рукой чтобы покинуть самолет");
-        player.sendMessage("");
-        player.sendMessage("§a● §fНажмите §e[ПКМ] §fна блок сиденья чтобы пересесть");
-        player.sendMessage("");
-        player.sendMessage("§7Доступные сиденья:");
-        
-        for (PlaneSeat seat : plane.getSeats().values()) {
-            if (seat.getPassenger() == null) {
-                player.sendMessage("  §e- Сиденье #" + seat.getId() + 
-                                 " (§f" + seat.getRole().getDisplayName() + "§e)");
-            }
-        }
+        // Сообщение уже показано в PlayerListener, здесь только устанавливаем статус
+        player.sendTitle("§eМеню самолета", "§7Выберите действие", 10, 60, 10);
     }
     
     /**
@@ -65,6 +53,7 @@ public class GuiManager implements Listener {
         Plane plane = plugin.getPlaneManager().getPlayerPlane(player);
         if (plane == null) {
             pendingActions.remove(player.getUniqueId());
+            player.resetTitle();
             return;
         }
         
@@ -77,7 +66,16 @@ public class GuiManager implements Listener {
                 event.setCancelled(true);
                 plugin.getPlaneManager().exitPlane(player);
                 pendingActions.remove(player.getUniqueId());
-                player.sendMessage("§eВы покинули самолет.");
+                player.resetTitle();
+                player.sendMessage("§e✈ Вы успешно покинули самолет!");
+                
+                // Эффект выхода
+                var loc = player.getLocation();
+                var world = loc.getWorld();
+                if (world != null) {
+                    world.spawnParticle(org.bukkit.Particle.CLOUD, loc, 20, 0.5, 0.5, 0.5, 0.1);
+                    world.playSound(loc, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.8f);
+                }
             }
         }
         
@@ -94,15 +92,33 @@ public class GuiManager implements Listener {
                             // Пересаживаемся
                             plane.seatPlayer(player, seat.getId());
                             pendingActions.remove(player.getUniqueId());
-                            player.sendMessage("§aВы пересели на сиденье #" + seat.getId());
-                            player.sendMessage("§7Роль: §e" + seat.getRole().getDisplayName());
+                            player.resetTitle();
+                            
+                            String roleIcon = switch (seat.getRole()) {
+                                case PILOT -> "§e🎯";
+                                case GUNNER -> "§c🔫";
+                                case ENGINEER -> "§9⚙️";
+                                default -> "§7•";
+                            };
+                            
+                            player.sendMessage("§a✺ Вы пересели на сиденье §e#" + seat.getId());
+                            player.sendMessage(roleIcon + " §7Роль: §f" + seat.getRole().getDisplayName());
+                            
+                            // Эффект посадки
+                            var loc = seat.getLocation();
+                            var world = loc.getWorld();
+                            if (world != null) {
+                                world.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, loc, 10, 0.3, 0.3, 0.3, 0.05);
+                                world.playSound(loc, org.bukkit.Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.2f);
+                            }
                         } else {
-                            player.sendMessage("§cЭто место занято!");
+                            player.sendMessage("§c❌ Это место уже занято!");
+                            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                         }
                         return;
                     }
                 }
-                player.sendMessage("§cЭто не сиденье самолета!");
+                player.sendMessage("§c❌ Это не сиденье вашего самолета!");
             }
         }
     }
