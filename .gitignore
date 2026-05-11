@@ -1,0 +1,18 @@
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
+target/
+# Dependencies
+lib/
+# Logs and temp files
+*.log
+*.tmp
+# Editors
+.vscode/
+.idea/
+# Maven specific
+target/maven-status/
+```
